@@ -1,0 +1,9 @@
+{
+    "AUTHOR" : "DuctTape",
+    "SHORT" : "Signals users to assemble",
+    "DESCRIPTION" : "Allows admins to configure per channel signals that notify users of events.  Like a bat signal.",
+    "DISABLED" : false,
+    "NAME" : "Signal",
+    "TAGS" : ["everyone", "mass mentions"],
+    "INSTALL_MSG" : "[p]signal to signal, [p]sigset to configure"
+}
