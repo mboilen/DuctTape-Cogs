@@ -26,8 +26,11 @@ class Signal:
 		if signals:
 			if gameName is None:
 				#game is none, so find the default game for the channel
-				#since this comprehension returns a list, grab the only value.  If there are multiple or no values, don't grab anything
+				#since this comprehension returns a list, make sure the channel isn't ambiguous
 				gameTemp = [g for g in signals.values() if g['channel'] == ctx.message.channel.id]
+				if len(gameTemp) > 1:
+					await self.bot.say("The channel " + ctx.message.channel.name + " is the channel for multiple games (" + (", ".join([g['game'] for g in gameTemp])) + ").  Please specify game explicitly.")
+					return
 				if len(gameTemp) == 1:
 					game = gameTemp[0]
 			else:
