@@ -7,6 +7,7 @@ from discord import ChannelType
 import os
 import random
 from cogs.utils.chat_formatting import box, pagify, escape_mass_mentions
+import re
 
 class Signal:
 	"""Signals users to assemble"""
@@ -17,8 +18,9 @@ class Signal:
 		self.c_signals = dataIO.load_json(self.file_path)
 
 
+	#the *, gameName : str allows for a multiword game name without quotes
 	@commands.command(pass_context=True, no_pm=True)
-	async def signal(self, ctx, gameName : str = None):
+	async def signal(self, ctx, *, gameName : str = None):
 		"""Sends up a signal"""
 		server = ctx.message.server
 		game = None
@@ -34,8 +36,17 @@ class Signal:
 				if len(gameTemp) == 1:
 					game = gameTemp[0]
 			else:
-				if gameName.lower() in self.c_signals[server.id]:
-					game = self.c_signals[server.id][gameName.lower()]
+				if gameName.lower() in signals:
+					game = signals[gameName.lower()]
+				if game is None:
+					#I couldn't find the game by it's primary name.  Look for aliases.
+					#(aliases might not exist)
+					gameTemp = [g for g in signals.values() if (gameName.lower() in g.get('aliases', []))]
+					if len(gameTemp) > 1:
+						await self.bot.say("The name " + gameName + " is the alias for multiple games (" + (", ".join([g['game'] for g in gameTemp])) + ").  Please specify game by name, not alias.")
+						return
+					if len(gameTemp) == 1:
+						game = gameTemp[0]
 		
 		if game is None:
 			if gameName is None:
@@ -73,6 +84,7 @@ class Signal:
 
 				name = game['game']
 				messages = game['messages']
+				aliases = ", ".join(game.get('aliases', []))
 				channelObj = utils.get(ctx.message.server.channels, id=game['channel'], type=ChannelType.text)
 				if channelObj:
 					channelName = channelObj.name
@@ -81,6 +93,7 @@ class Signal:
 
 				output.append("Game: " + name + "\n")
 				output.append("Channel: #" + channelName + "\n")
+				output.append("Aliases: " + aliases + "\n")
 				output.append("Messages:\n")
 				for msg in game['messages']:
 					output.append("\t" + msg + "\n")
@@ -198,6 +211,22 @@ class Signal:
 			await self.bot.say("Removed message.")
 		except:
 			await self.bot.say("Error removing message.")
+
+	@sigset.command(name="aliases", pass_context=True)
+	@checks.mod_or_permissions(administrator=True)
+	async def ss_aliases(self, ctx, gameName : str, *, aliases : str=""):
+		"""Adds a comma separated list of aliases to a game"""
+		server = ctx.message.server
+		games = self.c_signals[server.id]
+		game = None
+		if games:
+			game = games.get(gameName.lower())
+		if not game:
+			await self.bot.say(gameName + " not defined")
+			return
+		game['aliases'] = re.split('\s*,\s*', aliases)
+		self.save_settings()
+		await self.bot.say("Set aliases to [" + ", ".join(game['aliases']) + "] for " + gameName)
 
 
 
