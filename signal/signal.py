@@ -100,7 +100,7 @@ class Signal:
 				output.append("\n")
 
 		if displayedValue:
-			for page in pagify("".join(output), lang="py"):
+			for page in pagify("".join(output)):
 				await self.bot.say(box(page, lang="py"))
 		else:
 			await self.bot.say("No games found")
