@@ -66,7 +66,7 @@ class Signal(commands.Cog):
         msg = random.choice(game['messages'])
         channel = utils.get(server.channels, id=game['channel'], type=ChannelType.text)
         if channel:
-            await channel.send(msg)
+            await channel.send(msg, allowed_mentions=discord.AllowedMentions.all() )
         else:
             await ctx.send("channel with id " + game['channel'] + " does not exist")
 
